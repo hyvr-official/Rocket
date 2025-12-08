@@ -4,7 +4,7 @@ namespace Hyvr\Rocket;
 
 use Illuminate\Support\ServiceProvider;
 
-class ToolsServiceProvider extends ServiceProvider
+class RocketServiceProvider extends ServiceProvider
 {
     public function register(){}
 
