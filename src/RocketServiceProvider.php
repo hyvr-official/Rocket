@@ -2,6 +2,7 @@
 
 namespace Hyvr\Rocket;
 
+use Hyvr\Rocket\Commands\BuildCommand;
 use Illuminate\Support\ServiceProvider;
 
 class RocketServiceProvider extends ServiceProvider
