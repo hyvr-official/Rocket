@@ -35,7 +35,7 @@ class BuildCommand extends Command
         $build_path = $base_path.'/'.'build';
         $dist_path = $base_path.'/'.'dist';
         $public_path = $base_path.'/'.'public';
-
+ 
         config(['app.url' => config('rocket.base_url')]);
 
         if(File::exists($build_path)) File::deleteDirectory($build_path);
