@@ -2,9 +2,12 @@
 
 namespace Hyvr\Rocket\Commands;
 
+use Hyvr\Rocket\Core\RocketURLGenerator;
 use Hyvr\Rocket\Helpers\ConfigHelper;
 use Hyvr\Rocket\Helpers\FileHelper;
 use Hyvr\Rocket\Helpers\MinifyHelper;
+use Hyvr\Rocket\Helpers\TerminalHelper;
+use Hyvr\Rocket\Helpers\URLHelper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -12,22 +15,24 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
 use PhpZip\Exception\ZipException;
 use PhpZip\ZipFile;
+use Illuminate\Routing\UrlGenerator;
 
 class BuildCommand extends Command
 {
     protected $signature = 'rocket:build';
-    protected $description = 'Rocket is a static site generator for Laravel to to generate build';
+    protected $description = 'Generate the static build of the Laravel app';
 
     public function handle(){
+        TerminalHelper::printHeader($this);
+
         ConfigHelper::init($this);
 
-        $this->newLine();
-        $this->line('<fg=#ef4444;options=bold>   ___   ____   _____   __ __   ____ ______</>');
-        $this->line('<fg=#ef4444;options=bold>  / _ \ / __ \ / ___/  / //_/  / __//_  __/</>');
-        $this->line('<fg=#ef4444;options=bold> / , _// /_/ // /__   / ,<    / _/   / /   </>');
-        $this->line('<fg=#ef4444;options=bold>/_/|_| \____/ \___/  /_/|_|  /___/  /_/    </>');
-        $this->line('<fg=white;options=bold>From Hyvr • v1.01</>');
-        $this->newLine();
+        config(['rocket.is_in_build_context' => true]);
+
+        app()->extend(UrlGenerator::class, function ($url, $app){
+            return new RocketURLGenerator(app()['router']->getRoutes(), app()['request']);
+        });
+
         $this->line('<fg=yellow>🔥 Baking project build.</>');
         $this->newLine();
 
@@ -35,8 +40,6 @@ class BuildCommand extends Command
         $build_path = $base_path.'/'.'build';
         $dist_path = $base_path.'/'.'dist';
         $public_path = $base_path.'/'.'public';
- 
-        config(['app.url' => config('rocket.base_url')]);
 
         if(File::exists($build_path)) File::deleteDirectory($build_path);
         File::makeDirectory($build_path);
@@ -65,18 +68,24 @@ class BuildCommand extends Command
         $bar = $this->output->createProgressBar(count($routes));
 
         foreach($routes as $route){
-            $route_uri = $route->uri();
-            $route_method = $route->methods()[0] ?? 'GET';
-            $file_path = $build_path.'/'.$route_uri;
+            $route_parameter_values = isset($route->routeParameterValues)?$route->routeParameterValues:[[]];
 
-            $request = Request::create($route_uri, $route_method);
-            $response = App::handle($request);
-            $html = $response->getContent();
+            foreach($route_parameter_values as $route_parameter_value){
+                $route_uri = $route->uri();
+                $route_uri = URLHelper::buildRouteWithParameter($route_uri, $route_parameter_value);
 
-            if(!File::exists($file_path)) File::makeDirectory($file_path, 0755, true);
+                $route_method = $route->methods()[0] ?? 'GET';
+                $file_path = $build_path.'/'.$route_uri;
 
-            if($html!=''){
-                File::append($file_path.'/index.html', $html);
+                $request = Request::create($route_uri, $route_method);
+                $response = App::handle($request);
+                $html = $response->getContent();
+
+                if(!File::exists($file_path)) File::makeDirectory($file_path, 0755, true);
+
+                if($html!=''){
+                    File::append($file_path.'/index.html', $html);
+                }
             }
 
             $bar->advance();

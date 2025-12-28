@@ -1,0 +1,13 @@
+{
+    "base_url": "/",
+    "server": {
+        "host": "127.0.0.1",
+        "port": "4000"
+    },
+    "minify": {
+        "html": true,
+        "css": true,
+        "js": true
+    },
+    "distribution": true
+}
