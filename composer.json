@@ -1,6 +1,6 @@
 {
     "name": "hyvr/rocket",
-    "description": "",
+    "description": "Rocket is a static site generator for Laravel to generate static build",
     "type": "library",
     "autoload": {
         "psr-4": {

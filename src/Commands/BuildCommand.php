@@ -44,9 +44,6 @@ class BuildCommand extends Command
         if(File::exists($build_path)) File::deleteDirectory($build_path);
         File::makeDirectory($build_path);
         
-        if(File::exists($dist_path)) File::deleteDirectory($dist_path);
-        File::makeDirectory($dist_path);
-        
         foreach(File::directories($public_path) as $folder){
             File::copyDirectory($folder, ($build_path.'/'.basename($folder)));
         }
@@ -157,6 +154,9 @@ class BuildCommand extends Command
         }
 
         if(config('rocket.distribution', true)){
+            if(File::exists($dist_path)) File::deleteDirectory($dist_path);
+            File::makeDirectory($dist_path);
+
             $this->newLine();
             $this->line('⚙️ Compressing the build to a zip file.');
 
@@ -179,9 +179,9 @@ class BuildCommand extends Command
         }
 
         $this->newLine();
-        $this->line('<fg=cyan>🌀 Build zip file is fully completed and available in the <options=bold>"dist"</> directory.</>');
+        $this->line('<fg=cyan>🌀 Build zip file is fully completed and available in the <options=bold>"build"</> directory.</>');
 
-        if(config('rocket.distribution', false)) $this->line('<fg=cyan>🌀 Zip file of the build is available in the <options=bold>"build"</> directory.</>');
+        if(config('rocket.distribution', true)) $this->line('<fg=cyan>🌀 Zip file of the build is available in the <options=bold>"dist"</> directory.</>');
 
         return Command::SUCCESS;
     }
